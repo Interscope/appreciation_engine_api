@@ -1,0 +1,124 @@
+<?php
+/**
+ * @file appreciation_engine_api.module
+ * @author Malcolm Poindexter <malcolm.poindexter@umusic.com>
+ * Main Module Definition for Appreciation Engine API integration.
+ */
+module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.api');
+module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.admin');
+module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.install');
+
+/**
+ * Implements hook_entity_info()
+ */
+function appreciation_engine_api_entity_info(){
+	$info = array();
+	$info['appreciation_engine_api_feed'] = array(
+    	// First we define some basic information.
+    	'label' => t('An Appreciation Engine feed API response.'),
+    	'module' => 'appreciation_engine_api',
+		'entity class' => 'Entity',
+		'controller class' => 'RemoteEntityAPIDefaultController',
+		'metadata controller class' => 'RemoteEntityAPIDefaultMetadataController',
+		'base table' => 'appreciation_engine_api_feed',	//RemoteEntityAPI Entities must have their own base table for remote_entity.
+		'fieldable' => FALSE,
+      // Then we add some properties that influence how our entities are treated
+      'entity keys' => array( // These keys are the name of properties of entity objects.
+        'id' => 'eid',
+        'label' => 'long_desc',
+      ),
+      'view modes' => array(
+      	'full' => array(
+      	  'label' => t('Full  content'),
+      	  'custom settings' => FALSE,
+      	)
+      ),
+      'admin ui' => array(
+        'path' => 'admin/content/ktp',
+        'controller class' => 'RemoteEntityEntityUIController',
+      ),
+      //Remote Entity API directives
+      'remote base table' => 'appreciation_engine_api_feed',
+	  'remote entity keys' => array(
+	  	'remote id' => 'ID',
+	  	'label' => 'long_desc',
+	  ),
+	  //Bundle Info
+      'bundles' => array(
+        'appreciation_engine_api' => array( // For the sake of simplicity, we only define one bundle.
+          'label' => t('Appreciation Engine API'),
+          'admin' => array(
+            'path' => 'admin/config/appreciation_engine', // Field configuration pages for our entity will live at this address.
+          ),
+        ),
+      ),
+
+      // Finally, we specify what part of our code will be acting on our entities, overriding the defaults. This can be done by specifying callbacks or methods on the entity controller class.
+	  'label callback' => 'remote_entity_entity_label',
+	  'uri callback' => 'entity_class_uri',
+      'access callback' => 'appreciation_engine_api_admin_access',
+      
+	);
+	
+	//Setup the properties map.
+	$remote_properties = _appreciation_engine_api_remote_properties();
+	foreach($info as $key => $einfo){
+		$info[$key]['property map'] = drupal_map_assoc(array_keys($remote_properties[$key]));
+	}
+	
+	return $info;
+}
+
+function _appreciation_engine_api_remote_properties() {
+	$properties = array();
+	$properties['appreciation_engine_api_feed'] = array(
+		'ID' => array(
+			'type' => 'text',
+			'description' => 'Appreciation Engine Feed Activity ID.',
+		),
+	);
+	
+	$properties['appreciation_engine_api_top'] = array(
+		'ID' => array(
+			'type' => 'text',
+			'description' => 'Appreciation Engine Top User ID.',
+		),
+	);
+	
+	$properties['appreciation_engine_api_user'] = array(
+		'ID' => array(
+			'type' => 'text',
+			'description' => 'Appreciation Engine User ID.',
+		),
+	);
+	
+	return $properties;
+}
+
+/**
+ * Implements hook_entity_property_info()
+ */
+function appreciation_engine_api_entity_property_info(){
+	
+}
+
+/**
+* Implements hook_clients_default_resources().
+*
+* Define our remote entity resource.
+* @see https://drupal.org/node/1936338
+*/
+function appreciation_engine_api_clients_default_resources() {
+	$items['my_entity_type'] = entity_import('clients_resource', '{
+    "component" : "my_entity_type",
+    "connection" : "my_connection_name",
+    "name" : "my_entity_type",
+    "label" : "My Entity Type",
+    "type" : "remote_entity",
+    "configuration" : null,
+    "rdf_mapping" : []
+  }');
+
+	return $items;
+}
+
