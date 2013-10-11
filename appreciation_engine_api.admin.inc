@@ -8,7 +8,7 @@
 /**
  * Implements hook_help()
  */
-function iga_common_help($path, $arg){
+function appreciation_engine_api_common_help($path, $arg){
 
 	//return 'Help text goes here.';/** @todo add help text */
 }
@@ -26,14 +26,15 @@ function appreciation_engine_api_permission() {
 /**
  * Access callback for the entity API.
  */
-function appreciation_engine_api_admin_access($op, $type = NULL, $account = NULL) {
+function appreciation_engine_api_admin_access($op, $entity = NULL, $account = NULL, $entity_type) {
+	drupal_set_message($account);
 	return user_access('administer appreciation_engine settings', $account);
 }
 
 /**
  * Implements hook_menu()
  */
-function appreciation_engine_api_common_menu() {
+function appreciation_engine_api_menu() {
 	$items = array();
 
 	$items['admin/config/appreciation_engine'] = array(
@@ -45,7 +46,16 @@ function appreciation_engine_api_common_menu() {
 			'access arguments' => array('access administration pages', 'administer appreciation_engine settings'),
 			'file' => 'system.admin.inc',
 	);
-
+	
+	$items['admin/config/appreciation_engine/settings'] = array(
+			'title' => 'Appreciation Engine Settings',
+			'description' => 'Settings for appreciation_engine modules',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('appreciation_engine_api_admin'),
+			'access arguments' => array('access administration pages', 'administer appreciation_engine settings'),
+			'type' => MENU_NORMAL_ITEM,
+	);
+	
 	return $items;
 }
 
@@ -55,10 +65,21 @@ function appreciation_engine_api_common_menu() {
  */
 function appreciation_engine_api_admin() {
 	$form = array();
-
+	//# API Settings
+	/*
+	$form['appreciation_engine_api'] = array(
+			'#type' => 'fieldset',
+			'#title' => t('API Settings'),
+			'#weight' => 0,
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+			'#tree' => TRUE,
+	);
+	 */
+	
 	$form['appreciation_engine_api_key'] = array(
 			'#type' => 'password',//textfield
-			'#default_value' => variable_get('appreciation_engine_api_key'),
+			'#default_value' => variable_get('appreciation_engine_api_key',''),
 			'#title' => t('API Key'),
 			'#description' => t("API Key used for Appreciation Engine APIs."),
 			'#required' => FALSE,
@@ -75,6 +96,7 @@ function appreciation_engine_api_admin() {
 			'#weight' => 1,
 	);*/
 	
+	//## Caching Settings
 	$form['appreciation_engine_api_cache'] = array(
 			'#type' => 'fieldset',
 			'#title' => t('Caching Settings'),

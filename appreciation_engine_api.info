@@ -8,7 +8,7 @@ version = 7.x-0.1-alpha
 ; dependencies[] = OTHER REQUIRED MODULES
 dependencies[] = entity
 dependencies[] = remote_entity
-dependencies[] = clients
+dependencies[] = clients_drupal_rest
 
 ; files[] = REFERENCED PHP CODE FILES
 files[] = appreciation_engine_api.module

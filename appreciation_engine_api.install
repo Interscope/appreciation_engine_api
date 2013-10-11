@@ -1,19 +1,118 @@
 <?php
 
+/**
+ * 
+ * Implements hook_install
+ */
 function appreciation_engine_api_install(){
-  
+	//drupal_install_schema('appreciation_engine_api');
 }
 
+/**
+ * Install database schema for appreciation_engine_api 
+ * Implements hook_update_N 
+ */
+function appreciation_engine_api_update_7001(){
+	drupal_install_schema('appreciation_engine_api');
+}
+
+
+/**
+ * Implements hook_uninstall
+ */
 function appreciation_engine_api_uninstall(){
-  
+	drupal_uninstall_schema('appreciation_engine_api');
 }
 
 /**
  * Implementation of hook_schema().
  */
-function usda_remote_schema() {
+function appreciation_engine_api_schema() {
 	$schema = array();
 
+	$schema['appreciation_engine_api_feed'] = array(
+			'description' => 'The base table for appreciation_engine_api_feed entity type.',
+			'fields' => array(
+					'eid' => array(
+							// We give entities a local entity ID in case the remote ID is
+							// non-numeric, which would make it incompatible with FieldAPI.
+							'description' => 'The local entity id.',
+							'type' => 'serial',
+							'unsigned' => TRUE,
+							'not null' => TRUE,
+					),
+					'remote_id' => array(
+							'description' => 'The remote entity ID. Not necessarily numeric',//query id
+							'type' => 'varchar',
+							'length' => 255,//probably needs to be higher
+							'not null' => FALSE,
+							'default' => NULL,
+					),
+					'type' => array(
+							'description' => 'The type of this entity.',
+							'type' => 'varchar',
+							'length' => 32,
+							'not null' => TRUE,
+							'default' => '',
+					),
+					'entity_data' => array(
+							'description' => 'Serialized remote object data.',
+							'type' => 'text',
+							'serialize' => TRUE,
+							'size' => 'big',
+					),
+					'created' => array(
+							'description' => 'The Unix timestamp when the entity was created.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,
+					),
+					'changed' => array(
+							'description' => 'The Unix timestamp when the entity was last updated.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,
+					),
+					// @see RemoteEntityAPIDefaultController::remote_save()
+					'remote_saved' => array(
+							'description' => 'The Unix timestamp when the entity was last saved remotely.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,
+					),
+					'needs_remote_save' => array(
+							'description' => 'Boolean indicating that this entity should be saved remotely by cron.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,
+					),
+					// @see RemoteEntityAPIDefaultController::load()
+					'expires' => array(
+							'description' => 'The Unix timestamp when the entity expires. A value of 0 means this does not expire.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,//variable_get('appreciation_engine_api_cache_feed')
+					),
+					'deleted' => array(
+							'description' => 'Boolean indicating that this remote entity is marked for deletion.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,
+					),
+			),
+			'indexes' => array(
+					'entity_changed'  => array('changed'),
+					'entity_created'  => array('created'),
+					'entity_expires'  => array('expires'),
+					'entity_deleted' => array('deleted'),
+					'entity_needs_remote_save' => array('needs_remote_save'),
+			),
+			'unique keys' => array(
+					'remote_id' => array('remote_id'),
+			),
+			'primary key' => array('eid'),
+	);
+	
 	$schema['appreciation_engine_api_top'] = array(
 		'description' => 'The base table for appreciation_engine_api_top entity type.',
 		'fields' => array(
@@ -97,5 +196,88 @@ function usda_remote_schema() {
 		'primary key' => array('eid'),
 	);
 
+	$schema['appreciation_engine_api_user'] = array(
+			'description' => 'The base table for appreciation_engine_api_user entity type.',
+			'fields' => array(
+					'eid' => array(
+							// We give entities a local entity ID in case the remote ID is
+							// non-numeric, which would make it incompatible with FieldAPI.
+							'description' => 'The local entity id.',
+							'type' => 'serial',
+							'unsigned' => TRUE,
+							'not null' => TRUE,
+					),
+					'remote_id' => array(
+							'description' => 'The remote entity ID. Not necessarily numeric',//query id
+							'type' => 'varchar',
+							'length' => 255,//probably needs to be higher
+							'not null' => FALSE,
+							'default' => NULL,
+					),
+					'type' => array(
+							'description' => 'The type of this entity.',
+							'type' => 'varchar',
+							'length' => 32,
+							'not null' => TRUE,
+							'default' => '',
+					),
+					'entity_data' => array(
+							'description' => 'Serialized remote object data.',
+							'type' => 'text',
+							'serialize' => TRUE,
+							'size' => 'big',
+					),
+					'created' => array(
+							'description' => 'The Unix timestamp when the entity was created.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,
+					),
+					'changed' => array(
+							'description' => 'The Unix timestamp when the entity was last updated.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,
+					),
+					// @see RemoteEntityAPIDefaultController::remote_save()
+					'remote_saved' => array(
+							'description' => 'The Unix timestamp when the entity was last saved remotely.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,
+					),
+					'needs_remote_save' => array(
+							'description' => 'Boolean indicating that this entity should be saved remotely by cron.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,
+					),
+					// @see RemoteEntityAPIDefaultController::load()
+					'expires' => array(
+							'description' => 'The Unix timestamp when the entity expires. A value of 0 means this does not expire.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,//variable_get('appreciation_engine_api_cache_feed')
+					),
+					'deleted' => array(
+							'description' => 'Boolean indicating that this remote entity is marked for deletion.',
+							'type' => 'int',
+							'not null' => TRUE,
+							'default' => 0,
+					),
+			),
+			'indexes' => array(
+					'entity_changed'  => array('changed'),
+					'entity_created'  => array('created'),
+					'entity_expires'  => array('expires'),
+					'entity_deleted' => array('deleted'),
+					'entity_needs_remote_save' => array('needs_remote_save'),
+			),
+			'unique keys' => array(
+					'remote_id' => array('remote_id'),
+			),
+			'primary key' => array('eid'),
+	);
+	
 	return $schema;
 }

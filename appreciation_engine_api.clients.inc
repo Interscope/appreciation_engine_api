@@ -60,6 +60,43 @@ ClientsRemoteEntityInterface {
   }
 
   /**
+   * Make an API request.
+   * overrides clients_connection_drupal_services_rest_7::makeRequest
+   */
+  function makeRequest($http_method = 'GET', $query='', $params = array()) {
+  	$params = http_build_query($params, '', '&');
+  	$data = $query . ((!empty($query) && !empty($params))?'&':'') . $params ;
+    $path = $this->endpoint;
+  	$headers = array(
+  			'Accept' => 'application/json',
+  	);
+  
+  	// Add a CSRF token if the method is one that requires it.
+  	$non_safe_method = !in_array($http_method, array('GET', 'HEAD', 'OPTIONS', 'TRACE'));
+  	if ($non_safe_method) {
+  		$headers['X-CSRF-Token'] = $this->getXCSRFToken();
+  	}
+  
+  	$options = array(
+  			'headers' => $headers,
+  			'method'  => $http_method,
+  	);
+  	
+  	if($http_method =='POST'){
+  		$options['data'] = $data;
+  	}else{
+  		$path .= '?' . $data;
+  	}
+  	
+  	$response = drupal_http_request($path, $options);
+  
+  	$this->handleRestError($response);
+  
+  	$result = json_decode($response->data);
+  	return $result;
+  }
+  
+  /**
    * Provide a map of remote property types to Drupal types.
    *
    * Roughly analogous to _entity_metadata_convert_schema_type().
@@ -97,40 +134,5 @@ ClientsRemoteEntityInterface {
     		return new AERemoteUpdateQuery($this);
     }
   }
-}
-
-
-// Not planning to use any import...
-function usda_remote_import_data($entity_type, &$context) {
-	if (!count($context['sandbox'])) {
-		$context['sandbox']['progress'] = 0;
-		$context['sandbox']['current'] = 0;
-		// TODO: Implement an entity count endpoint and use that
-		$context['sandbox']['max'] = 8194;
-		$context['sandbox']['info'] = entity_get_info($entity_type);
-	}
-
-	$info = &$context['sandbox']['info'];
-
-	////////////////// Code goes here
-
-	if ($context['sandbox']['progress'] < $context['sandbox']['max']) {
-		$context['finished'] = $context['sandbox']['progress'] / (float) $context['sandbox']['max'];
-		$context['message'] = t('Progress: @count/@max <em>!label</em> entities', array('@count' => $context['sandbox']['progress'], '@max' => $context['sandbox']['max'], '!label' => $info['label']));
-	}
-	else {
-		$context['results'][] = t('Imported @count !label entities', array('@count' => $context['sandbox']['progress'], '!label' => $info['label']));
-	}
-}
-
-function usda_remote_import_complete($success, $results, $operations, $duration) {
-	if ($success) {
-		foreach ($results as $message) {
-			drupal_set_message($message);
-		}
-	}
-	else {
-		$message = t('Finished with an error.');
-	}
 }
 

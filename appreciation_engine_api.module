@@ -1,12 +1,56 @@
 <?php
 /**
+ * Main Module Definition for Appreciation Engine API integration.
  * @file appreciation_engine_api.module
  * @author Malcolm Poindexter <malcolm.poindexter@umusic.com>
- * Main Module Definition for Appreciation Engine API integration.
+ * @see https://www.google.com/search?q=Programming+Drupal+7+Entities
  */
-module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.api');
+//module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.api');
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.admin');
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.install');
+module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.controller');
+module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.clients');
+module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.query');
+
+/**
+ * Load an Entity by an array of query parameters.
+ * Note: response may expose sensitive user data such as email addresses. Should be cleaned before presented to an enduser.
+ */
+function appreciation_engine_api_load($type, &$filters){
+	$entity_type = "appreciation_engine_api_" . $type;
+	$entities = entity_load($entity_type, FALSE, array("remote_id" => base64_encode(http_build_query($filters))));
+	$e_count = count($entities);
+	if($e_count > 0){
+		if($e_count > 1){
+			trigger_error("multiple ".$entity_type." entities found for " . $id);// If we have multiple entities for the same remote_id something went wrong.
+		}
+		foreach( $entities as $id => $entity){
+			return entity_metadata_wrapper($entity_type, $entity);
+		}
+	}else{
+		return NULL;
+	}
+}
+
+/**
+ * Load an entity by entity_id. This will not make a remote API request if entity_id isn't found.
+ * Note: response may expose sensitive user data such as email addresses. Should be cleaned before presented to an enduser.
+ */
+function appreciation_engine_api_load_byId($type, $id){
+	$entity_type = "appreciation_engine_api_" . $type;
+	$entities = entity_load($entity_type, array($id));
+	$e_count = count($entities);
+	if($e_count > 0){
+		if($e_count > 1){
+			trigger_error("multiple ".$entity_type." entities found for " . $id);// If we have multiple entities for the same id something went wrong.
+		}
+		return entity_metadata_wrapper($entity_type, $entities[$id]);
+	}else{
+		return NULL;
+	}
+}
+
+///////// TODO --> appreciation_engine_api.entity.inc
 
 /**
  * Implements hook_entity_info()
@@ -18,7 +62,7 @@ function appreciation_engine_api_entity_info(){
     	'label' => t('An Appreciation Engine feed API response.'),
     	'module' => 'appreciation_engine_api',
 		'entity class' => 'Entity',
-		'controller class' => 'RemoteEntityAPIDefaultController',
+		'controller class' => 'AppreciationEngineRemonteEntityAPIController',//TODO Custom Controller
 		'metadata controller class' => 'RemoteEntityAPIDefaultMetadataController',
 		'base table' => 'appreciation_engine_api_feed',	//RemoteEntityAPI Entities must have their own base table for remote_entity.
 		'fieldable' => FALSE,
@@ -33,14 +77,10 @@ function appreciation_engine_api_entity_info(){
       	  'custom settings' => FALSE,
       	)
       ),
-      'admin ui' => array(
-        'path' => 'admin/content/ktp',
-        'controller class' => 'RemoteEntityEntityUIController',
-      ),
       //Remote Entity API directives
       'remote base table' => 'appreciation_engine_api_feed',
 	  'remote entity keys' => array(
-	  	'remote id' => 'ID',
+	  	'remote id' => 'query_64',
 	  	'label' => 'long_desc',
 	  ),
 	  //Bundle Info
@@ -52,43 +92,167 @@ function appreciation_engine_api_entity_info(){
           ),
         ),
       ),
-
       // Finally, we specify what part of our code will be acting on our entities, overriding the defaults. This can be done by specifying callbacks or methods on the entity controller class.
 	  'label callback' => 'remote_entity_entity_label',
 	  'uri callback' => 'entity_class_uri',
       'access callback' => 'appreciation_engine_api_admin_access',
-      
 	);
 	
+	$info['appreciation_engine_api_top'] = array(
+			// First we define some basic information.
+			'label' => t('An Appreciation Engine top API response.'),
+			'module' => 'appreciation_engine_api',
+			'entity class' => 'Entity',
+			'controller class' => 'AppreciationEngineRemonteEntityAPIController',//TODO Custom Controller
+			'metadata controller class' => 'RemoteEntityAPIDefaultMetadataController',
+			'base table' => 'appreciation_engine_api_top',	//RemoteEntityAPI Entities must have their own base table for remote_entity.
+			'fieldable' => FALSE,
+			// Then we add some properties that influence how our entities are treated
+			'entity keys' => array( // These keys are the name of properties of entity objects.
+				'id' => 'eid',
+				'label' => 'long_desc',
+			),
+			'view modes' => array(
+				'full' => array(
+						'label' => t('Full  content'),
+						'custom settings' => FALSE,
+				)
+			),
+			//Remote Entity API directives
+			'remote base table' => 'appreciation_engine_api_top',
+			'remote entity keys' => array(
+		  	'remote id' => 'query_64',
+		  	'label' => 'long_desc',
+			),
+			//Bundle Info
+			'bundles' => array(
+					'appreciation_engine_api' => array( // For the sake of simplicity, we only define one bundle.
+							'label' => t('Appreciation Engine API'),
+							'admin' => array(
+									'path' => 'admin/config/appreciation_engine', // Field configuration pages for our entity will live at this address.
+							),
+					),
+			),
+			// Finally, we specify what part of our code will be acting on our entities, overriding the defaults. This can be done by specifying callbacks or methods on the entity controller class.
+			'label callback' => 'remote_entity_entity_label',
+			'uri callback' => 'entity_class_uri',
+			'access callback' => 'appreciation_engine_api_admin_access',
+	);
+	
+	$info['appreciation_engine_api_user'] = array(
+			// First we define some basic information.
+			'label' => t('An Appreciation Engine user API response.'),
+			'module' => 'appreciation_engine_user',
+			'entity class' => 'Entity',
+			'controller class' => 'AppreciationEngineRemonteEntityAPIController',//TODO Custom Controller
+			'metadata controller class' => 'RemoteEntityAPIDefaultMetadataController',
+			'base table' => 'appreciation_engine_api_user',	//RemoteEntityAPI Entities must have their own base table for remote_entity.
+			'fieldable' => FALSE,
+			// Then we add some properties that influence how our entities are treated
+			'entity keys' => array( // These keys are the name of properties of entity objects.
+				'id' => 'eid',
+				'label' => 'long_desc',
+			),
+			'view modes' => array(
+				'full' => array(
+						'label' => t('Full  content'),
+						'custom settings' => FALSE,
+				)
+			),
+			//Remote Entity API directives
+			'remote base table' => 'appreciation_engine_api_top',
+			'remote entity keys' => array(
+		  	'remote id' => 'query_64',
+		  	'label' => 'long_desc',
+			),
+			//Bundle Info
+			'bundles' => array(
+					'appreciation_engine_api' => array( // For the sake of simplicity, we only define one bundle.
+							'label' => t('Appreciation Engine API'),
+							'admin' => array(
+									'path' => 'admin/config/appreciation_engine', // Field configuration pages for our entity will live at this address.
+							),
+					),
+			),
+			// Finally, we specify what part of our code will be acting on our entities, overriding the defaults. This can be done by specifying callbacks or methods on the entity controller class.
+			'label callback' => 'remote_entity_entity_label',
+			'uri callback' => 'entity_class_uri',
+			'access callback' => 'appreciation_engine_api_admin_access',
+	);
 	//Setup the properties map.
 	$remote_properties = _appreciation_engine_api_remote_properties();
+	
+	//Cache settings are set through the module admin.
+	$api_cache = array(
+		'appreciation_engine_api_feed' => variable_get('appreciation_engine_api_cache_feed', 0),
+		'appreciation_engine_api_top' => variable_get('appreciation_engine_api_cache_top', 0),
+		'appreciation_engine_api_user' => variable_get('appreciation_engine_api_cache_user', 0)
+	);
+	
 	foreach($info as $key => $einfo){
 		$info[$key]['property map'] = drupal_map_assoc(array_keys($remote_properties[$key]));
+		//Setup cache
+		$info[$key]['expiry'] = array(
+			'expiry time' => $api_cache[$key],//TODO see how this updates via hook_admin() form
+			'purge' => TRUE);//our remote entities aren't fieldable & won't have any entity references, so we're ok to delete on cron.
 	}
 	
 	return $info;
 }
 
+/**
+ * Property information for Appreciation Engine Request Entities.
+ * @see https://drupal.org/node/1021466
+ * @return array
+ */
 function _appreciation_engine_api_remote_properties() {
 	$properties = array();
 	$properties['appreciation_engine_api_feed'] = array(
-		'ID' => array(
+		'query_64' => array(
 			'type' => 'text',
-			'description' => 'Appreciation Engine Feed Activity ID.',
+			'description' => 'The base64 Encoded querystring passed to the Appreciation Engine API endpoint',
+		),
+		'totalSize' => array(
+			'type' => 'integer',
+			'description' => 'The number of items returned in this Appreciation Engine Feed API response',
+		),
+		'items' => array(
+			'type' => 'struct',
+			'description' => 'Appreciation Engine Feed API activity items.',
 		),
 	);
 	
 	$properties['appreciation_engine_api_top'] = array(
-		'ID' => array(
-			'type' => 'text',
-			'description' => 'Appreciation Engine Top User ID.',
+		'query_64' => array(
+				'type' => 'text',
+				'description' => 'The base64 Encoded querystring passed to the Appreciation Engine API endpoint',
+		),
+		'totalSize' => array(
+			'type' => 'integer',
+			'description' => 'The number of items returned in this Appreciation Engine Top API response',
+		),
+		'items' => array(
+			'type' => 'struct',
+			'description' => 'Appreciation Engine Top API leaderboard users.',
 		),
 	);
 	
 	$properties['appreciation_engine_api_user'] = array(
-		'ID' => array(
-			'type' => 'text',
-			'description' => 'Appreciation Engine User ID.',
+		'query_64' => array(
+				'type' => 'text',
+				'description' => 'The base64 Encoded querystring passed to the Appreciation Engine API endpoint',
+		),
+		'data' => array(
+			'type' => 'struct',
+			'description' => 'Appreciation Engine User data',
+		),
+		'actions' => array(
+			'type' => 'struct',
+			'description' => 'Appreciation Engine User recent activities.',
+		),
+		'brands' => array(
+			'type' => 'struct',
+			'description' => 'Appreciation Engine User brand affinities.',
 		),
 	);
 	
@@ -97,9 +261,31 @@ function _appreciation_engine_api_remote_properties() {
 
 /**
  * Implements hook_entity_property_info()
+ * @see http://drupalcontrib.org/api/drupal/contributions!entity!entity.api.php/function/hook_entity_property_info/7
  */
 function appreciation_engine_api_entity_property_info(){
+	$entity_types = array('appreciation_engine_api_feed'/*, 'appreciation_engine_api_top', 'appreciation_engine_api_user'*/);
+	$remote_properties = _appreciation_engine_api_remote_properties();
 	
+	foreach($entity_types as $entity_type){
+		$properties = &$info[$entity_type]['properties'];
+		$entity_data = &$properties['entity_data'];
+		$pp = &$remote_properties[$entity_type];
+		$entity_data['type'] = 'remote_entity_'.$entity_type;
+		
+		foreach($pp as $key => $pinfo){
+			$pp[$key]['label'] = $key;
+			$pp[$key]['getter callback'] = 'entity_property_verbatim_get';
+		}
+		$entity_data['property info'] = $pp;
+	}
+}
+
+/**
+ * Implements hook_remote_entity_process
+ */
+function appreciation_engine_api_remote_entity_process($entities, $entity_type) {
+
 }
 
 /**
@@ -109,16 +295,76 @@ function appreciation_engine_api_entity_property_info(){
 * @see https://drupal.org/node/1936338
 */
 function appreciation_engine_api_clients_default_resources() {
-	$items['my_entity_type'] = entity_import('clients_resource', '{
-    "component" : "my_entity_type",
-    "connection" : "my_connection_name",
-    "name" : "my_entity_type",
-    "label" : "My Entity Type",
-    "type" : "remote_entity",
-    "configuration" : null,
-    "rdf_mapping" : []
-  }');
+	$resources = array();
+	$resources['appreciation_engine_api_feed'] = new clients_resource_remote_entity(array(
+	    "component" => "appreciation_engine_api_feed",
+	    "connection"  => "theappreciationengine_api_feed",
+	    "name"  => "appreciation_engine_api_feed",
+	    "label"  => "Appreciation Engine Feed",
+	    "type"  => "remote_entity",
+	    "configuration"  => null,
+	    "rdf_mapping"  => []
+  	), 'clients_resource');
+	
+	$resources['appreciation_engine_api_top'] = new clients_resource_remote_entity(array(
+			"component" => "appreciation_engine_api_top",
+			"connection"  => "theappreciationengine_api_top",
+			"name"  => "appreciation_engine_api_top",
+			"label"  => "Appreciation Engine Top",
+			"type"  => "remote_entity",
+			"configuration"  => null,
+			"rdf_mapping"  => []
+	), 'clients_resource');
+	
+	$resources['appreciation_engine_api_user'] = new clients_resource_remote_entity(array(
+			"component" => "appreciation_engine_api_user",
+			"connection"  => "theappreciationengine_api_user",
+			"name"  => "appreciation_engine_api_user",
+			"label"  => "Appreciation Engine User",
+			"type"  => "remote_entity",
+			"configuration"  => null,
+			"rdf_mapping"  => []
+	), 'clients_resource');
 
-	return $items;
+	return $resources;
+}
+
+/**
+ * Define default client connections.
+ */
+function appreciation_engine_api_clients_default_connections() {
+	$connections['theappreciationengine_api_feed'] = new clients_connection_appreciation_engine_services(array(
+			'endpoint' => 'https://theappreciationengine.com/api/feed',
+			'configuration' => array(
+					'username' => '',
+					'password' => '',
+					'read_only' => TRUE,
+			),
+			'label' => 'the Appreciation Engine Feed API',
+			'type' => 'appreciation_engine_services',
+	), 'clients_connection');
+	
+	$connections['theappreciationengine_api_top'] = new clients_connection_appreciation_engine_services(array(
+			'endpoint' => 'https://theappreciationengine.com/api/top',
+			'configuration' => array(
+					'username' => '',
+					'password' => '',
+					'read_only' => TRUE,
+			),
+			'label' => 'the Appreciation Engine Top API',
+			'type' => 'appreciation_engine_services',
+	), 'clients_connection');
+	
+	$connections['theappreciationengine_api_user'] = new clients_connection_appreciation_engine_services(array(
+			'endpoint' => 'https://theappreciationengine.com/api/user',
+			'configuration' => array(
+					'username' => '',
+					'password' => '',
+					'read_only' => TRUE,
+			),
+			'label' => 'the Appreciation Engine User API',
+			'type' => 'appreciation_engine_services',
+	), 'clients_connection');
+	return $connections;
 }
 

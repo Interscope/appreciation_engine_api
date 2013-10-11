@@ -68,24 +68,17 @@ class AERemoteSelectQuery extends RemoteEntityQuery {
    *  Remote entity objects as retrieved from the remote connection.
    */
   function execute() {
-    $path = 'entity_'.$this->base_entity_type;
-    $querystring = array();
-
-    if (empty($this->conditions)) {
-      // Build the query string
-      $querystring['pagesize'] = $this->pager['limit'];
-      $querystring['page'] = $this->pager['page'];
-    }
-    else {
-      $entity_id = $this->conditions[$this->remote_base][0]['value'];
-      $path .= '/' . $entity_id;
-    }
-
-    if (count($querystring)) {
-      $path .= '?' . http_build_query($querystring);
-    }
+    
+  	$entity_id = $this->conditions[$this->remote_base][0]['value'];
+  	$query = base64_decode($entity_id);
     // Make the request.
-    $response = $this->connection->makeRequest($path, 'GET');
+    $response = $this->connection->makeRequest('GET', $query, 
+    	array('apiKey'=> variable_get('appreciation_engine_api_key') ));//add the API Key
+    
+    if(isset($response)){
+    	$response->query_64 = $entity_id;
+    	//$response->query = $entity_id;
+    }
     if (!$this->retrieve_multiple) {
       $response = array($response);
     }
