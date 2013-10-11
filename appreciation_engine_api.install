@@ -16,6 +16,14 @@ function appreciation_engine_api_update_7001(){
 	drupal_install_schema('appreciation_engine_api');
 }
 
+/**
+ * Schema hard refresh
+ * Implements hook_update_N 
+ */
+function appreciation_engine_api_update_7002(){
+	drupal_uninstall_schema('appreciation_engine_api');
+	drupal_install_schema('appreciation_engine_api');
+}
 
 /**
  * Implements hook_uninstall

@@ -6,6 +6,7 @@
  * @see https://www.google.com/search?q=Programming+Drupal+7+Entities
  */
 //module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.api');
+module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.functions');
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.admin');
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.install');
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.controller');
@@ -183,10 +184,11 @@ function appreciation_engine_api_entity_info(){
 	$remote_properties = _appreciation_engine_api_remote_properties();
 	
 	//Cache settings are set through the module admin.
+	$ae_api = variable_get('appreciation_engine_api');
 	$api_cache = array(
-		'appreciation_engine_api_feed' => variable_get('appreciation_engine_api_cache_feed', 0),
-		'appreciation_engine_api_top' => variable_get('appreciation_engine_api_cache_top', 0),
-		'appreciation_engine_api_user' => variable_get('appreciation_engine_api_cache_user', 0)
+		'appreciation_engine_api_feed' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'feed', 0),
+		'appreciation_engine_api_top' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'top', 0),
+		'appreciation_engine_api_user' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'user', 0)
 	);
 	
 	foreach($info as $key => $einfo){

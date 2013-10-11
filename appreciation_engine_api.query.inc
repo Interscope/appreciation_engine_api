@@ -73,7 +73,7 @@ class AERemoteSelectQuery extends RemoteEntityQuery {
   	$query = base64_decode($entity_id);
     // Make the request.
     $response = $this->connection->makeRequest('GET', $query, 
-    	array('apiKey'=> variable_get('appreciation_engine_api_key') ));//add the API Key
+    	array('apiKey'=> getValueOrDefault( variable_get('appreciation_engine_api'),'apiKey') ));//add the API Key
     
     if(isset($response)){
     	$response->query_64 = $entity_id;
