@@ -15,13 +15,16 @@ module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.c
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.query');
 
 /**
- * Load an Entity by an array of query parameters.
+ * Load an Entity by an array of query parameters. Query will be formatted & stored as a base-64 encoded querystring.
  * Note: response may expose sensitive user data such as email addresses. Should be cleaned before presented to an enduser.
+ * 
+ * @example
+ * 	appreciation_engine_api_load('feed', array( 'limit' => 100, 'clientID' => '1' , 'campaign' => '1004' ));
  */
 function appreciation_engine_api_load($type, &$filters){
 	$entity_type = "appreciation_engine_api_" . $type;
+	// Create the API querystring from the filters, base-64 encode it, and store it.
 	$entities = entity_load($entity_type, array(base64_encode(http_build_query($filters))));
-	//$entities = entity_load($entity_type, FALSE, array("remote_id" => base64_encode(http_build_query($filters))));
 	$e_count = count($entities);
 	if($e_count > 0){
 		if($e_count > 1){
@@ -36,26 +39,7 @@ function appreciation_engine_api_load($type, &$filters){
 }
 
 /**
- * Load an entity by entity_id. This will not make a remote API request if entity_id isn't found.
- * Note: response may expose sensitive user data such as email addresses. Should be cleaned before presented to an enduser.
- */
-function appreciation_engine_api_load_byId($type, $id){
-	$entity_type = "appreciation_engine_api_" . $type;
-	$entities = entity_load($entity_type, array($id));
-	$e_count = count($entities);
-	if($e_count > 0){
-		if($e_count > 1){
-			trigger_error("multiple ".$entity_type." entities found for " . $id);// If we have multiple entities for the same id something went wrong.
-		}
-		return entity_metadata_wrapper($entity_type, $entities[$id]);
-	}else{
-		return NULL;
-	}
-}
-
-///////// TODO --> appreciation_engine_api.entity.inc
-
-/**
+ * Define the Drupal entities for the API data.
  * Implements hook_entity_info()
  */
 function appreciation_engine_api_entity_info(){
@@ -83,7 +67,7 @@ function appreciation_engine_api_entity_info(){
       //Remote Entity API directives
       'remote base table' => 'appreciation_engine_api_feed',
 	  'remote entity keys' => array(
-	  	'remote id' => 'query_64',
+	  	'remote id' => 'query_enc',
 	  	'label' => 'long_desc',
 	  ),
 	  //Bundle Info
@@ -130,7 +114,7 @@ function appreciation_engine_api_entity_info(){
 			//Remote Entity API directives
 			'remote base table' => 'appreciation_engine_api_top',
 			'remote entity keys' => array(
-		  	'remote id' => 'query_64',
+		  	'remote id' => 'query_enc',
 		  	'label' => 'long_desc',
 			),
 			//Bundle Info
@@ -176,7 +160,7 @@ function appreciation_engine_api_entity_info(){
 			//Remote Entity API directives
 			'remote base table' => 'appreciation_engine_api_top',
 			'remote entity keys' => array(
-		  	'remote id' => 'query_64',
+		  	'remote id' => 'query_enc',
 		  	'label' => 'long_desc',
 			),
 			//Bundle Info
@@ -214,7 +198,7 @@ function appreciation_engine_api_entity_info(){
 		$info[$key]['property map'] = drupal_map_assoc(array_keys($remote_properties[$key]));
 		//Setup cache
 		$info[$key]['expiry'] = array(
-			'expiry time' => $api_cache[$key],//TODO see how this updates via hook_admin() form
+			'expiry time' => $api_cache[$key],
 			'purge' => TRUE);//our remote entities aren't fieldable & won't have any entity references, so we're ok to delete on cron.
 		
 		if(module_exists('entitycache')){
@@ -233,7 +217,7 @@ function appreciation_engine_api_entity_info(){
 function _appreciation_engine_api_remote_properties() {
 	$properties = array();
 	$properties['appreciation_engine_api_feed'] = array(
-		'query_64' => array(
+		'query_enc' => array(
 			'type' => 'text',
 			'description' => 'The base64 Encoded querystring passed to the Appreciation Engine API endpoint',
 		),
@@ -248,7 +232,7 @@ function _appreciation_engine_api_remote_properties() {
 	);
 	
 	$properties['appreciation_engine_api_top'] = array(
-		'query_64' => array(
+		'query_enc' => array(
 				'type' => 'text',
 				'description' => 'The base64 Encoded querystring passed to the Appreciation Engine API endpoint',
 		),
@@ -263,7 +247,7 @@ function _appreciation_engine_api_remote_properties() {
 	);
 	
 	$properties['appreciation_engine_api_user'] = array(
-		'query_64' => array(
+		'query_enc' => array(
 				'type' => 'text',
 				'description' => 'The base64 Encoded querystring passed to the Appreciation Engine API endpoint',
 		),

@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Modified base code to use Appreciation Engine queries
+ *
+ */
 class clients_connection_appreciation_engine_services extends clients_connection_drupal_services_rest_7
 implements
 ClientsConnectionAdminUIInterface,

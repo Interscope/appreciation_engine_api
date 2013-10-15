@@ -2,6 +2,7 @@
 
 /**
  * Select query for remote Appreciation Engine data.
+ * @author Malcolm Poindexter <malcolm.poindexter@umusic.com>
  */
 class AERemoteSelectQuery extends RemoteEntityQuery {
   // TODO: make vars protected once no longer developing.
@@ -62,13 +63,12 @@ class AERemoteSelectQuery extends RemoteEntityQuery {
   }
 
   /**
-   * Run the query and return a result.
+   * Modified base query->execute. Appends api key to query and adds base-64 encoded query to response to store as primary key.
    *
    * @return
    *  Remote entity objects as retrieved from the remote connection.
    */
   function execute() {
-    
   	$entity_id = $this->conditions[$this->remote_base][0]['value'];
   	$query = base64_decode($entity_id);
     // Make the request.
@@ -76,7 +76,7 @@ class AERemoteSelectQuery extends RemoteEntityQuery {
     	array('apiKey'=> getValueOrDefault( variable_get('appreciation_engine_api'),'apiKey') ));//add the API Key
     
     if(isset($response)){
-    	$response->query_64 = $entity_id;
+    	$response->query_enc = $entity_id;
     	//$response->query = $entity_id;
     }
     if (!$this->retrieve_multiple) {

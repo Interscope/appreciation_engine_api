@@ -9,7 +9,6 @@
  * Implements hook_help()
  */
 function appreciation_engine_api_common_help($path, $arg){
-
 	//return 'Help text goes here.';/** @todo add help text */
 }
 
@@ -27,7 +26,6 @@ function appreciation_engine_api_permission() {
  * Access callback for the entity API.
  */
 function appreciation_engine_api_admin_access($op, $entity = NULL, $account = NULL, $entity_type) {
-	drupal_set_message($account);
 	return user_access('administer appreciation_engine settings', $account);
 }
 
@@ -36,23 +34,13 @@ function appreciation_engine_api_admin_access($op, $entity = NULL, $account = NU
  */
 function appreciation_engine_api_menu() {
 	$items = array();
-
-	/*$items['admin/config/appreciation_engine'] = array(
-			'title' => 'Appreciation Engine',
-			'description' => 'Settings related to Appreciation Engine.',
-			'position' => 'right',
-			'weight' => 0,
-			'page callback' => 'system_admin_menu_block_page',
-			'access arguments' => array('access administration pages'),//, 'administer appreciation_engine settings'
-			'file' => 'system.admin.inc',
-	);*/
 	
 	$items['admin/config/services/appreciation_engine'] = array(// /settings
 			'title' => 'Appreciation Engine',
 			'description' => 'Settings for appreciation_engine modules',
 			'page callback' => 'drupal_get_form',
 			'page arguments' => array('appreciation_engine_api_admin'),
-			'access arguments' => array('access administration pages'),//, 'administer appreciation_engine settings'
+			'access arguments' => array('administer appreciation_engine settings'),//, 'administer appreciation_engine settings'
 			'type' => MENU_NORMAL_ITEM,
 	);
 	
@@ -62,7 +50,7 @@ function appreciation_engine_api_menu() {
 			'description' => 'Form to manage top api entities stored in the Database.',
 			'page callback' => 'drupal_get_form',
 			'page arguments' => array('appreciation_engine_api_admin'),
-			'access arguments' => array('access administration pages'),
+			'access arguments' => array('administer appreciation_engine settings'),
 			'type' => MENU_LOCAL_TASK
 	);
 	
@@ -71,7 +59,7 @@ function appreciation_engine_api_menu() {
 			'description' => 'Form to manage feed api entities stored in the Database.',
 			'page callback' => 'drupal_get_form',
 			'page arguments' => array('appreciation_engine_api_admin'),
-			'access arguments' => array('access administration pages'),
+			'access arguments' => array('administer appreciation_engine settings'),
 			'type' => MENU_LOCAL_TASK
 	);
 	
@@ -80,7 +68,7 @@ function appreciation_engine_api_menu() {
 			'description' => 'Form to manage user api entities stored in the Database.',
 			'page callback' => 'drupal_get_form',
 			'page arguments' => array('appreciation_engine_api_admin'),
-			'access arguments' => array('access administration pages'),
+			'access arguments' => array('administer appreciation_engine settings'),
 			'type' => MENU_LOCAL_TASK
 	);
 	
@@ -115,16 +103,6 @@ function appreciation_engine_api_admin() {
 			'#required' => FALSE,
 			'#weight' => 1,
 	);
-	
-	//@TODO implement item entities.
-	/*$form['appreciation_engine_api_store_items'] = array(
-			'#type' => 'checkbox',
-			'#default_value' => 0,
-			'#title' => t('Store API Items'),
-			'#description' => t("By default API responses are stored as entities, but not individual response items."),
-			'#required' => FALSE,
-			'#weight' => 1,
-	);*/
 	
 	//## Caching Settings
 	$form['appreciation_engine_api']['caching'] = array(
@@ -172,6 +150,16 @@ function appreciation_engine_api_admin() {
 			'#required' => FALSE,
 			'#weight' => 4,
 	);
+	
+	//@TODO implement item entities?
+	/*$form['appreciation_engine_api_store_items'] = array(
+	 '#type' => 'checkbox',
+			'#default_value' => 0,
+			'#title' => t('Store API Items'),
+			'#description' => t("By default API responses are stored as entities, but not individual response items."),
+			'#required' => FALSE,
+			'#weight' => 1,
+	);*/
 	
 	return system_settings_form($form);
 }
