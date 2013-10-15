@@ -52,8 +52,36 @@ function appreciation_engine_api_menu() {
 			'description' => 'Settings for appreciation_engine modules',
 			'page callback' => 'drupal_get_form',
 			'page arguments' => array('appreciation_engine_api_admin'),
-			'access arguments' => array('access administration pages', 'administer appreciation_engine settings'),
+			'access arguments' => array('access administration pages'),//, 'administer appreciation_engine settings'
 			'type' => MENU_NORMAL_ITEM,
+	);
+	
+	//TODO Add a clear cache button.
+	$items['admin/config/services/appreciation_engine/top/entities'] = array(
+			'title' => 'Top API Data',
+			'description' => 'Form to manage top api entities stored in the Database.',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('appreciation_engine_api_admin'),
+			'access arguments' => array('access administration pages'),
+			'type' => MENU_LOCAL_TASK
+	);
+	
+	$items['admin/config/services/appreciation_engine/feed/entities'] = array(
+			'title' => 'Feed API Data',
+			'description' => 'Form to manage feed api entities stored in the Database.',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('appreciation_engine_api_admin'),
+			'access arguments' => array('access administration pages'),
+			'type' => MENU_LOCAL_TASK
+	);
+	
+	$items['admin/config/services/appreciation_engine/user/entities'] = array(
+			'title' => 'User API Data',
+			'description' => 'Form to manage user api entities stored in the Database.',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('appreciation_engine_api_admin'),
+			'access arguments' => array('access administration pages'),
+			'type' => MENU_LOCAL_TASK
 	);
 	
 	return $items;
@@ -83,7 +111,7 @@ function appreciation_engine_api_admin() {
 	$form['appreciation_engine_api']['apiKey'] = array(
 			'#type' => 'password',//textfield
 			'#title' => t('API Key'),
-			'#description' => t("API Key used for Appreciation Engine access."),
+			'#description' => t("API Key used for Appreciation Engine access. (Will only update if entered manually)"),
 			'#required' => FALSE,
 			'#weight' => 1,
 	);
@@ -108,10 +136,11 @@ function appreciation_engine_api_admin() {
 			'#tree' => TRUE,
 	);
 	
+	$ae_caching = getValueOrDefault($ae_api, 'caching');
 	$form['appreciation_engine_api']['caching']['feed'] = array(
 			'#type' => 'textfield',
 			'#title' => t('Activity Feed Cache Duration'),
-			'#default_value' => 60,
+			'#default_value' => getValueOrDefault($ae_caching,'feed',60),
 			'#description' => t("The time in seconds to cache responses from the /feed api."),
 			'#required' => FALSE,
 			'#weight' => 1,
@@ -120,7 +149,7 @@ function appreciation_engine_api_admin() {
 	$form['appreciation_engine_api']['caching']['top'] = array(
 			'#type' => 'textfield',
 			'#title' => t('Leaderboard Cache Duration'),
-			'#default_value' => 60,
+			'#default_value' => getValueOrDefault($ae_caching,'top',60),
 			'#description' => t("The time in seconds to cache responses from the /top api."),
 			'#required' => FALSE,
 			'#weight' => 2,
@@ -129,7 +158,7 @@ function appreciation_engine_api_admin() {
 	$form['appreciation_engine_api']['caching']['user'] = array(
 			'#type' => 'textfield',
 			'#title' => t('User Cache Duration'),
-			'#default_value' => 60,
+			'#default_value' => getValueOrDefault($ae_caching,'user',60),
 			'#description' => t("The time in seconds to cache responses from the /user api."),
 			'#required' => FALSE,
 			'#weight' => 3,
@@ -137,7 +166,7 @@ function appreciation_engine_api_admin() {
 	
 	$form['appreciation_engine_api']['caching']['buffersize'] = array(// TODO support paging buffer.
 			'#type' => 'textfield',
-			'#default_value' => 1000,//MAX supported value - allows local paging
+			'#default_value' => getValueOrDefault($ae_caching,'buffersize',60),//MAX supported value - allows local paging
 			'#title' => t('Request Buffer Size'),
 			'#description' => t("The number of results to pull from the API endpoint per cache miss. Requests will then page locally. MAX = 1000"),
 			'#required' => FALSE,

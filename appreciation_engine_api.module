@@ -5,10 +5,11 @@
  * @author Malcolm Poindexter <malcolm.poindexter@umusic.com>
  * @see https://www.google.com/search?q=Programming+Drupal+7+Entities
  */
-//module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.api');
+
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.functions');
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.admin');
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.install');
+module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.entity');
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.controller');
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.clients');
 module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.query');
@@ -19,7 +20,8 @@ module_load_include('inc', 'appreciation_engine_api', 'appreciation_engine_api.q
  */
 function appreciation_engine_api_load($type, &$filters){
 	$entity_type = "appreciation_engine_api_" . $type;
-	$entities = entity_load($entity_type, FALSE, array("remote_id" => base64_encode(http_build_query($filters))));
+	$entities = entity_load($entity_type, array(base64_encode(http_build_query($filters))));
+	//$entities = entity_load($entity_type, FALSE, array("remote_id" => base64_encode(http_build_query($filters))));
 	$e_count = count($entities);
 	if($e_count > 0){
 		if($e_count > 1){
@@ -69,7 +71,7 @@ function appreciation_engine_api_entity_info(){
 		'fieldable' => FALSE,
       // Then we add some properties that influence how our entities are treated
       'entity keys' => array( // These keys are the name of properties of entity objects.
-        'id' => 'eid',
+        'id' => 'remote_id',//remote_id, eid
         'label' => 'long_desc',
       ),
       'view modes' => array(
@@ -93,6 +95,12 @@ function appreciation_engine_api_entity_info(){
           ),
         ),
       ),
+	  // Admin UI listing entities in DB.
+      'admin ui' => array(
+      		'path' => 'admin/config/services/appreciation_engine/feed/entities',
+      		'file' => 'appreciation_engine_api.admin.inc',
+      		'controller class' => 'RemoteEntityEntityUIController'
+      ),			
       // Finally, we specify what part of our code will be acting on our entities, overriding the defaults. This can be done by specifying callbacks or methods on the entity controller class.
 	  'label callback' => 'remote_entity_entity_label',
 	  'uri callback' => 'entity_class_uri',
@@ -110,7 +118,7 @@ function appreciation_engine_api_entity_info(){
 			'fieldable' => FALSE,
 			// Then we add some properties that influence how our entities are treated
 			'entity keys' => array( // These keys are the name of properties of entity objects.
-				'id' => 'eid',
+				'id' => 'remote_id',//remote_id, eid
 				'label' => 'long_desc',
 			),
 			'view modes' => array(
@@ -133,6 +141,11 @@ function appreciation_engine_api_entity_info(){
 									'path' => 'admin/config/appreciation_engine', // Field configuration pages for our entity will live at this address.
 							),
 					),
+			),
+			'admin ui' => array(
+					'path' => 'admin/config/services/appreciation_engine/feed/entities',
+					'file' => 'appreciation_engine_api.admin.inc',
+					'controller class' => 'RemoteEntityEntityUIController'
 			),
 			// Finally, we specify what part of our code will be acting on our entities, overriding the defaults. This can be done by specifying callbacks or methods on the entity controller class.
 			'label callback' => 'remote_entity_entity_label',
@@ -151,7 +164,7 @@ function appreciation_engine_api_entity_info(){
 			'fieldable' => FALSE,
 			// Then we add some properties that influence how our entities are treated
 			'entity keys' => array( // These keys are the name of properties of entity objects.
-				'id' => 'eid',
+				'id' => 'remote_id',//remote_id, eid
 				'label' => 'long_desc',
 			),
 			'view modes' => array(
@@ -175,6 +188,12 @@ function appreciation_engine_api_entity_info(){
 							),
 					),
 			),
+			// Admin UI listing entities in DB.
+			'admin ui' => array(
+					'path' => 'admin/config/services/appreciation_engine/user/entities',
+					'file' => 'appreciation_engine_api.admin.inc',
+					'controller class' => 'RemoteEntityEntityUIController'
+			),
 			// Finally, we specify what part of our code will be acting on our entities, overriding the defaults. This can be done by specifying callbacks or methods on the entity controller class.
 			'label callback' => 'remote_entity_entity_label',
 			'uri callback' => 'entity_class_uri',
@@ -186,9 +205,9 @@ function appreciation_engine_api_entity_info(){
 	//Cache settings are set through the module admin.
 	$ae_api = variable_get('appreciation_engine_api');
 	$api_cache = array(
-		'appreciation_engine_api_feed' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'feed', 0),
-		'appreciation_engine_api_top' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'top', 0),
-		'appreciation_engine_api_user' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'user', 0)
+		'appreciation_engine_api_feed' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'feed', 60),// expiry time == 0 --> Never expires.
+		'appreciation_engine_api_top' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'top', 60),
+		'appreciation_engine_api_user' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'user', 60)
 	);
 	
 	foreach($info as $key => $einfo){
@@ -197,6 +216,10 @@ function appreciation_engine_api_entity_info(){
 		$info[$key]['expiry'] = array(
 			'expiry time' => $api_cache[$key],//TODO see how this updates via hook_admin() form
 			'purge' => TRUE);//our remote entities aren't fieldable & won't have any entity references, so we're ok to delete on cron.
+		
+		if(module_exists('entitycache')){
+			$info[$key]['entity cache'] = TRUE;// let's cache this entity!
+		}
 	}
 	
 	return $info;

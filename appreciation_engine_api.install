@@ -5,12 +5,13 @@
  * Implements hook_install
  */
 function appreciation_engine_api_install(){
-	//drupal_install_schema('appreciation_engine_api');
+	drupal_install_schema('appreciation_engine_api');
+	_create_appreciation_engine_api_cachetables();
 }
 
+//Updates -- Implements hook_update_N 
 /**
  * Install database schema for appreciation_engine_api 
- * Implements hook_update_N 
  */
 function appreciation_engine_api_update_7001(){
 	drupal_install_schema('appreciation_engine_api');
@@ -18,7 +19,6 @@ function appreciation_engine_api_update_7001(){
 
 /**
  * Schema hard refresh
- * Implements hook_update_N 
  */
 function appreciation_engine_api_update_7002(){
 	drupal_uninstall_schema('appreciation_engine_api');
@@ -26,10 +26,52 @@ function appreciation_engine_api_update_7002(){
 }
 
 /**
+ * Create DB cache tables.
+ */
+function appreciation_engine_api_update_7003(){
+	_create_appreciation_engine_api_cachetables();
+}
+
+/**
+ * 
+ * @see https://drupal.org/project/entitycache
+ */
+function _create_appreciation_engine_api_cachetables(){
+	if(!db_table_exists("cache_entity_appreciation_engine_api_top")){
+		$schema = drupal_get_schema_unprocessed('system', 'cache');
+		$schema['description'] = "Cache table used to store appreciation_engine_api_top entity records.";
+		db_create_table('cache_entity_appreciation_engine_api_top', $schema);
+	}
+	if(!db_table_exists("cache_entity_appreciation_engine_api_feed")){
+		$schema = drupal_get_schema_unprocessed('system', 'cache');
+		$schema['description'] = "Cache table used to store appreciation_engine_api_feed entity records.";
+		db_create_table('cache_entity_appreciation_engine_api_feed', $schema);
+	}
+	if(!db_table_exists("cache_entity_appreciation_engine_api_user")){
+		$schema = drupal_get_schema_unprocessed('system', 'cache');
+		$schema['description'] = "Cache table used to store appreciation_engine_api_user entity records.";
+		db_create_table('cache_entity_appreciation_engine_api_user', $schema);
+	}
+}
+
+function _drop_appreciation_engine_api_cachetables(){
+	if(db_table_exists("cache_entity_appreciation_engine_api_top")){
+		db_drop_table('cache_entity_appreciation_engine_api_top');
+	}
+	if(db_table_exists("cache_entity_appreciation_engine_api_feed")){
+		db_drop_table('cache_entity_appreciation_engine_api_feed');
+	}
+	if(!db_table_exists("cache_entity_appreciation_engine_api_user")){
+		db_drop_table('cache_entity_appreciation_engine_api_user');
+	}
+}
+
+/**
  * Implements hook_uninstall
  */
 function appreciation_engine_api_uninstall(){
 	drupal_uninstall_schema('appreciation_engine_api');
+	_drop_appreciation_engine_api_cachetables();
 }
 
 /**

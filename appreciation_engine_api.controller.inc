@@ -10,30 +10,39 @@ class AppreciationEngineRemonteEntityAPIController extends RemoteEntityAPIDefaul
 	 */
 	public function load($ids = array(), $conditions = array()) {//TODO EntityFieldQuery ? - https://api.drupal.org/api/drupal/includes%21entity.inc/class/EntityFieldQuery/7		
 		$entities = parent::load($ids, $conditions);//only ever performing lookup by remote_id $ids will be local only
-		//dsm($entities, 'CONTROLLER load');
 		
-		if ($entities == NULL) { // If there are no entities, load from API using ids
-			foreach ($conditions as $field => $value) {
-				if($field !== "remote_id"){ continue; }
-				$remote_id = $value;
+		// If there are no entities, load from API using ids
+		if ( count($entities) === 0 && $this->bypass_remote_retrieve === FALSE) { // ... unless we're not in a normal load (save calls entity_load_unchanged to pull from DB only)
+			foreach ($ids as $remote_id) {
 
 				$resource = clients_resource_get_for_component('remote_entity', $this->entityType);
-				// Load the remote entity. This in turn:
-				// - calls the connection to build a RemoteEntityQuery
-				// - calls us to take care of doing the packing and the saving.
+				// Load the remote entity using a custom Entity controller.
 				$remote_entity = $resource->remote_entity_load($remote_id);
-				//dsm($remote_entity, 'controller load fetched entity from remote!');
 
-				// Replace the entity in the array, it is now stale.
-				// Only return something if the entity exists: if nothing has come
-				// back then the remote entity has vanished on the remote site.
+				// Add entity into collection indexed by base 64 encoded query (remote_id).
 				if (!empty($remote_entity)) {
-					$entities[$remote_entity->eid] = $remote_entity;
+					$entities[$remote_id] = $remote_entity;
 				}
 			}
 		}
 	
 		return $entities;
 	}
-	// TODO public function set_expiry($entity, $expiry_time = NULL)	
+	
+	public function set_expiry($entity, $expiry_time = NULL) {
+		// load caching configuration variables.
+		$ae_api = variable_get('appreciation_engine_api');
+		$api_cache = array(
+			'appreciation_engine_api_feed' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'feed', 0),
+			'appreciation_engine_api_top' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'top', 0),
+			'appreciation_engine_api_user' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'user', 0)
+		);
+		
+		//update expiry time from config variables.
+		$this->entityInfo['expiry']['expiry time'] = $api_cache[$this->entityType];
+		
+		// call base set_expiry
+		parent::set_expiry($entity, $expiry_time);
+	}
+	
 }
