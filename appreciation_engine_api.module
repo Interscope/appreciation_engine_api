@@ -194,6 +194,8 @@ function appreciation_engine_api_entity_info(){
 		'appreciation_engine_api_user' => getValueOrDefault(getValueOrDefault($ae_api,'caching'), 'user', 60)
 	);
 	
+	//TODO - Would it be better to not purge the entity requests for an admin ui review? Admin UI
+	
 	foreach($info as $key => $einfo){
 		$info[$key]['property map'] = drupal_map_assoc(array_keys($remote_properties[$key]));
 		//Setup cache
