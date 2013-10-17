@@ -12,7 +12,7 @@ if(!function_exists("getIfSet")){
 if(!function_exists("getValueOrDefault")){
 	function getValueOrDefault($array, $key, $default = NULL)//@TODO move to iga_common functions.php
 	{
-		if(!isset($array)){ return NULL; }
+		if(!isset($array)){ return $default; }
 		return isset($array[$key]) ? $array[$key] : $default;
 	}
 }

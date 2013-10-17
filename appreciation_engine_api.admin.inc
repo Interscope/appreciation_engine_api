@@ -118,7 +118,7 @@ function appreciation_engine_api_admin() {
 	$form['appreciation_engine_api']['caching']['feed'] = array(
 			'#type' => 'textfield',
 			'#title' => t('Activity Feed Cache Duration'),
-			'#default_value' => getValueOrDefault($ae_caching,'feed',60),
+			'#default_value' => getValueOrDefault($ae_caching,'feed', 60),
 			'#description' => t("The time in seconds to cache responses from the /feed api."),
 			'#required' => FALSE,
 			'#weight' => 1,
@@ -127,7 +127,7 @@ function appreciation_engine_api_admin() {
 	$form['appreciation_engine_api']['caching']['top'] = array(
 			'#type' => 'textfield',
 			'#title' => t('Leaderboard Cache Duration'),
-			'#default_value' => getValueOrDefault($ae_caching,'top',60),
+			'#default_value' => getValueOrDefault($ae_caching,'top', 60),
 			'#description' => t("The time in seconds to cache responses from the /top api."),
 			'#required' => FALSE,
 			'#weight' => 2,
@@ -136,7 +136,7 @@ function appreciation_engine_api_admin() {
 	$form['appreciation_engine_api']['caching']['user'] = array(
 			'#type' => 'textfield',
 			'#title' => t('User Cache Duration'),
-			'#default_value' => getValueOrDefault($ae_caching,'user',60),
+			'#default_value' => getValueOrDefault($ae_caching,'user', 60),
 			'#description' => t("The time in seconds to cache responses from the /user api."),
 			'#required' => FALSE,
 			'#weight' => 3,
