@@ -5,7 +5,9 @@
  * Implements hook_install
  */
 function appreciation_engine_api_install(){
-	drupal_install_schema('appreciation_engine_api');
+	if(!db_table_exists("appreciation_engine_api_top")){
+		drupal_install_schema('appreciation_engine_api');
+	}
 	_create_appreciation_engine_api_cachetables();
 }
 
@@ -70,7 +72,9 @@ function _drop_appreciation_engine_api_cachetables(){
  * Implements hook_uninstall
  */
 function appreciation_engine_api_uninstall(){
-	drupal_uninstall_schema('appreciation_engine_api');
+	if(db_table_exists("appreciation_engine_api_top")){
+		drupal_uninstall_schema('appreciation_engine_api');
+	}
 	_drop_appreciation_engine_api_cachetables();
 }
 
