@@ -95,7 +95,6 @@ ClientsRemoteEntityInterface {
   	$response = drupal_http_request($path, $options);
   
   	$this->handleRestError($response);
-  
   	$result = json_decode($response->data);
   	return $result;
   }

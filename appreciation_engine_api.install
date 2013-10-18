@@ -1,5 +1,7 @@
 <?php
 
+//TODO encoding remote_id 
+
 /**
  * 
  * Implements hook_install
@@ -35,6 +37,14 @@ function appreciation_engine_api_update_7003(){
 }
 
 /**
+ * Schema DB table update, increase remote_id field size to 2047 & drop unique key
+ */
+function appreciation_engine_api_update_7004(){
+	drupal_uninstall_schema('appreciation_engine_api');
+	drupal_install_schema('appreciation_engine_api');
+}
+
+/**
  * 
  * @see https://drupal.org/project/entitycache
  */
@@ -63,7 +73,7 @@ function _drop_appreciation_engine_api_cachetables(){
 	if(db_table_exists("cache_entity_appreciation_engine_api_feed")){
 		db_drop_table('cache_entity_appreciation_engine_api_feed');
 	}
-	if(!db_table_exists("cache_entity_appreciation_engine_api_user")){
+	if(db_table_exists("cache_entity_appreciation_engine_api_user")){
 		db_drop_table('cache_entity_appreciation_engine_api_user');
 	}
 }
@@ -96,7 +106,7 @@ function appreciation_engine_api_schema() {
 					'remote_id' => array(
 							'description' => 'The remote entity ID. Not necessarily numeric',//query id
 							'type' => 'varchar',
-							'length' => 255,//probably needs to be higher
+							'length' => 2047,
 							'not null' => FALSE,
 							'default' => NULL,
 					),
@@ -159,9 +169,9 @@ function appreciation_engine_api_schema() {
 					'entity_deleted' => array('deleted'),
 					'entity_needs_remote_save' => array('needs_remote_save'),
 			),
-			'unique keys' => array(
+			/*'unique keys' => array(
 					'remote_id' => array('remote_id'),
-			),
+			),*/
 			'primary key' => array('eid'),
 	);
 	
@@ -179,7 +189,7 @@ function appreciation_engine_api_schema() {
 			'remote_id' => array(
 				'description' => 'The remote entity ID. Not necessarily numeric',//query id
 				'type' => 'varchar',
-				'length' => 255,//probably needs to be higher
+				'length' => 2047,
 				'not null' => FALSE,
 				'default' => NULL,
 			),
@@ -242,9 +252,9 @@ function appreciation_engine_api_schema() {
 			'entity_deleted' => array('deleted'),
 			'entity_needs_remote_save' => array('needs_remote_save'),
 		),
-		'unique keys' => array(
+		/*'unique keys' => array(
 			'remote_id' => array('remote_id'),
-		),
+		),*/
 		'primary key' => array('eid'),
 	);
 
@@ -262,7 +272,7 @@ function appreciation_engine_api_schema() {
 					'remote_id' => array(
 							'description' => 'The remote entity ID. Not necessarily numeric',//query id
 							'type' => 'varchar',
-							'length' => 255,//probably needs to be higher
+							'length' => 2047,
 							'not null' => FALSE,
 							'default' => NULL,
 					),
@@ -325,9 +335,9 @@ function appreciation_engine_api_schema() {
 					'entity_deleted' => array('deleted'),
 					'entity_needs_remote_save' => array('needs_remote_save'),
 			),
-			'unique keys' => array(
+			/*'unique keys' => array(
 					'remote_id' => array('remote_id'),
-			),
+			),*/
 			'primary key' => array('eid'),
 	);
 	
