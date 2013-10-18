@@ -379,3 +379,18 @@ function appreciation_engine_api_clients_default_connections() {
 	return $connections;
 }
 
+/**
+ * Implements hook_remote_entity_query_table_info().
+ *
+ * NOTE: This is here to prevent a PHP warning in
+ * remote_entity_get_query_table_info(). This should be
+ * unneccessary once remote_entity is released.
+ */
+function appreciation_engine_api_remote_entity_query_table_info() {
+	return array(
+		'appreciation_engine_api_top' => array(),
+		'appreciation_engine_api_feed' => array(),
+		'appreciation_engine_api_user' => array()
+	);
+}
+
