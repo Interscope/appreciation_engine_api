@@ -310,31 +310,22 @@ function appreciation_engine_api_clients_default_resources() {
 	$resources['appreciation_engine_api_feed'] = new clients_resource_remote_entity(array(
 	    "component" => "appreciation_engine_api_feed",
 	    "connection"  => "theappreciationengine_api_feed",
-	    "name"  => "appreciation_engine_api_feed",
 	    "label"  => "Appreciation Engine Feed",
-	    "type"  => "remote_entity",
-	    "configuration"  => null,
-	    "rdf_mapping"  => array()
+	    "type"  => "remote_entity"
   	), 'clients_resource');
 	
 	$resources['appreciation_engine_api_top'] = new clients_resource_remote_entity(array(
 			"component" => "appreciation_engine_api_top",
 			"connection"  => "theappreciationengine_api_top",
-			"name"  => "appreciation_engine_api_top",
 			"label"  => "Appreciation Engine Top",
-			"type"  => "remote_entity",
-			"configuration"  => null,
-			"rdf_mapping"  => array()
+			"type"  => "remote_entity"
 	), 'clients_resource');
 	
 	$resources['appreciation_engine_api_user'] = new clients_resource_remote_entity(array(
 			"component" => "appreciation_engine_api_user",
 			"connection"  => "theappreciationengine_api_user",
-			"name"  => "appreciation_engine_api_user",
 			"label"  => "Appreciation Engine User",
-			"type"  => "remote_entity",
-			"configuration"  => null,
-			"rdf_mapping"  => array()
+			"type"  => "remote_entity"
 	), 'clients_resource');
 
 	return $resources;
@@ -388,9 +379,12 @@ function appreciation_engine_api_clients_default_connections() {
  */
 function appreciation_engine_api_remote_entity_query_table_info() {
 	return array(
+		/*'appreciation_engine_api_feed' => array(),
 		'appreciation_engine_api_top' => array(),
-		'appreciation_engine_api_feed' => array(),
-		'appreciation_engine_api_user' => array()
+		'appreciation_engine_api_user' => array(),*/
+		'theappreciationengine_api_top' => array(),
+		'theappreciationengine_api_feed' => array(),
+		'theappreciationengine_api_user' => array()
 	);
 }
 

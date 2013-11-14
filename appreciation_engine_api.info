@@ -2,7 +2,7 @@ name = Appreciation Engine API
 description = Drupal module for Appreciation Engine API integration using Entity API.
 core = 7.x
 package = Appreciation Engine
-version = 7.x-0.4-alpha
+version = 7.x-0.5-alpha
 
 
 ; dependencies[] = OTHER REQUIRED MODULES

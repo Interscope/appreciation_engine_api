@@ -17,8 +17,14 @@ class AppreciationEngineRemonteEntityAPIController extends RemoteEntityAPIDefaul
 				$conditions['eid'] =  $eid;
 			}
 			$ids = FALSE;
-		}		
-		$entities = parent::load($ids, $conditions);//only ever performing lookup by remote_id $ids will be local only
+		}
+		
+		$uids = array();//not the full query. For caching we can ignore some parameters 
+		foreach ($ids as $i => $query_enc){
+			$uids[$i] = $this->getUniqueIDfromQuery($query_enc);
+		}
+		
+		$entities = parent::load($uids, $conditions);//only ever performing lookup by remote_id $ids will be local only
 		
 		// If there are no entities, load from API using ids
 		if ( count($entities) === 0 && $this->bypass_remote_retrieve === FALSE) { // ... unless we're not in a normal load (save calls entity_load_unchanged to pull from DB only)
@@ -35,6 +41,30 @@ class AppreciationEngineRemonteEntityAPIController extends RemoteEntityAPIDefaul
 		}
 	
 		return $entities;
+	}
+	
+	/**
+	 * takes a base64 encoded query and strips out the non-unique params to compress the entity ID
+	 * @param string $query_enc
+	 */
+	public function getUniqueIDfromQuery($query_enc){
+		static $_CACHE_IGNORE_PARAMS;
+		if(!isset($_CACHE_IGNORE_PARAMS)){
+			$ae_caching = getValueOrDefault(variable_get('appreciation_engine_api'), 'caching');
+			$_CACHE_IGNORE_PARAMS = explode(',', getValueOrDefault($ae_caching,'ignoreParams', "exclude_members,includeOneTime,showposition,partnerCode"));
+		}
+		
+		//un-encode
+		$query = base64_decode($query_enc);
+		//strip params
+		parse_str($query, $query_arr);
+		foreach($_CACHE_IGNORE_PARAMS as $p){
+			if(isset($query_arr[$p])){
+				unset($query_arr[$p]);
+			}
+		}
+		//re-encode
+		return base64_encode(http_build_query($query_arr));
 	}
 	
 	/**

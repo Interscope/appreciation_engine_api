@@ -115,6 +115,15 @@ function appreciation_engine_api_admin() {
 	);
 	
 	$ae_caching = getValueOrDefault($ae_api, 'caching');
+	$form['appreciation_engine_api']['caching']['ignoreParams'] = array(
+			'#type' => 'textfield',
+			'#title' => t('Ignored Caching Key Parameters'),
+			'#default_value' => getValueOrDefault($ae_caching,'ignoreParams', "exclude_members,includeOneTime,showposition,partnerCode"),
+			'#description' => t("A comma-separated list of parameters to ignore for response caching purposes. Note: the cache key is limited in size so it is best to limit the number of parameters in the query."),
+			'#required' => FALSE,
+			'#weight' => 0,
+	);
+	
 	$form['appreciation_engine_api']['caching']['feed'] = array(
 			'#type' => 'textfield',
 			'#title' => t('Activity Feed Cache Duration'),
